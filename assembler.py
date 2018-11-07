@@ -1,7 +1,6 @@
 # from parser import Parser
 import sys
 import os
-from pathlib import Path
 from translator import Translator
 
 TRANSLATOR = Translator()
@@ -13,6 +12,7 @@ A_INSTRUCTION = '@'
 NULL = "null"
 EQUALS = '='
 JMP = ';'
+BITS = 15
 
 
 class SymbolTable:
@@ -78,7 +78,6 @@ def assemble_file(address):
         first_pass(lines, symbol_table)
         # Main Pass:
         output = main_pass(lines, symbol_table)
-        outname= os.path.splitext(os.path.basename(address))[0]
         out_file = open(os.path.splitext(os.path.basename(address))[0] +
                         ".hack", "w+")
         out_file.write(output)
@@ -94,16 +93,16 @@ def main_pass(lines, symbol_table):
             # Get the value after the @
             var = line[1:]
             # Case: Var is a decimal constant
-            if var.isdigit():
-                output += "0" + str(bin(var))[2:] + "\n"
-                continue
-            else:
-                # Case: Var is symbol:
+            var_to_convert = var
+            # Case: Var is symbol:
+            if not var.isdigit():
                 if var not in symbol_table.TABLE:
                     symbol_table.TABLE[var] = n
                     n += 1
-                output += "0" + str(bin(symbol_table.TABLE[var]))[2:] + "\n"
-                continue
+                var_to_convert = symbol_table.TABLE[var]
+            output += "0" + str(bin(int(var_to_convert)))[2:].zfill(
+                BITS) + "\n"
+            continue
         else:  # Line is C-Instruction
             # Get rid of any whitespace in the line:
             line = ''.join(line.split())
@@ -135,16 +134,18 @@ def validate_arg(arg):
         exit(-1)
 
 
-if __name__ == '__main__':
+def main():
     # verify input files correctness:
     for i in range(1, len(sys.argv)):
         arg = sys.argv[i]
-        validate_arg(arg)
         if os.path.isdir(arg):
             for filename in os.listdir(arg):
-                if not filename.endswith(".asm"):
-                    continue
-                validate_arg(filename)
-                assemble_file(filename)
+                if filename.endswith(".asm"):
+                    assemble_file(filename)
         else:
+            validate_arg(arg)
             assemble_file(arg)
+
+
+if __name__ == '__main__':
+    main()
