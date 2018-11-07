@@ -3,6 +3,7 @@ import sys
 import os
 from translator import Translator
 from pathlib import Path
+
 TRANSLATOR = Translator()
 # PARSER = Parser()
 LABEL_START = "("
@@ -15,6 +16,7 @@ JMP = ';'
 BITS = 15
 ASM_SUFFIX = ".asm"
 HACK_SUFFIX = ".hack"
+
 
 class SymbolTable:
     """
@@ -50,15 +52,18 @@ class SymbolTable:
 
 def parse_line(line):
     """The function parses a line into a list of its different parts."""
-    line_b = line.split(EQUALS)
-    dest = line_b[0]
-    comp = NULL
+
+    line_b = line.split(JMP)
+    dest = NULL
     jmp = NULL
+    if JMP in line:
+        jmp = line_b[1]
     if EQUALS in line:
-        line_b = line_b[1].split(JMP)
+        line_b = line_b[0].split(EQUALS)
+        comp = line_b[1]
+        dest = line_b[0]
+    else:
         comp = line_b[0]
-        if JMP in line:
-            jmp = line_b[1]
     return [dest, comp, jmp]
 
 
@@ -79,7 +84,7 @@ def assemble_file(address):
         first_pass(lines, symbol_table)
         # Main Pass:
         output = main_pass(lines, symbol_table)
-        out_file = open(address.replace(ASM_SUFFIX,HACK_SUFFIX), "w+")
+        out_file = open(address.replace(ASM_SUFFIX, HACK_SUFFIX), "w+")
         out_file.write(output)
         out_file.close()
 
@@ -88,6 +93,8 @@ def main_pass(lines, symbol_table):
     output = ""
     n = 16
     for line in lines:
+        if line.startswith(LABEL_START):
+            continue
         # Line is an A-Instruction:
         if line.startswith(A_INSTRUCTION):
             # Get the value after the @
@@ -118,7 +125,7 @@ def first_pass(lines, symbol_table):
     for line in lines:
         if line.startswith(LABEL_START):
             label = line[1:line.find(LABEL_END)]
-            symbol_table[label] = line_number + 1
+            symbol_table.TABLE[label] = line_number
         else:
             line_number += 1
 
@@ -140,10 +147,9 @@ def main():
         arg = sys.argv[i]
         if os.path.isdir(arg):
             dir_path = Path(arg)
-            # files = [os.path.abspath(j) for j in os.listdir(arg)]
             for file in os.listdir(arg):
                 if file.endswith(ASM_SUFFIX):
-                    file_path= dir_path/file
+                    file_path = dir_path / file
                     assemble_file(str(file_path))
         else:
             validate_arg(arg)

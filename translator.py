@@ -12,10 +12,12 @@ COMP_TABLE = {"0": "101010", "1": "111111", "-1": "111010", "D": "001100",
               "-A": "110011", "D+1": "011111", "A+1": "110111",
               "D-1": "001110", "A-1": "110010", "D+A": "000010",
               "D-A": "010011", "A-D": "000111", "D&A": "000000",
-              "D|A": "010101",
+              "D|A": "010101"
               }
 DEST_TABLE = {"null": "000", "M": "001", "D": "010", "MD": "011", "A": "100",
               "AM": "101", "AD": "110", "AMD": "111"}
+JMP_TABLE = {"null": "000", "JGT": "001", "JEQ": "010", "JGE": "011",
+             "JLT": "100", "JNE": "101", "JLE": "110", "JMP": "111"}
 
 
 class Translator:
@@ -27,7 +29,6 @@ class Translator:
         cInstruction += self.__translate_comp(comp) + self.__translate_dest(
             dest) + self.__translate_jmp(jmp) + "\n"
         return cInstruction
-
 
     def __translate_comp(self, comp):
         output = ""
@@ -72,11 +73,16 @@ class Translator:
         return DEST_TABLE[dest]
 
     def __translate_jmp(self, jmp):
-        output = ["0", "0", "0"]
-        if A_REG in jmp:
-            output[0] = "1"
-        if D_REG in jmp:
-            output[1] = "1"
-        if M_REG in jmp:
-            output[2] = "1"
-        return "".join(output)
+        if jmp not in JMP_TABLE:
+            print("Error: Illegal jmp input: " + jmp)
+            exit(-1)
+        return JMP_TABLE[jmp]
+        # def __translate_jmp(self, jmp):
+        #     output = ["0", "0", "0"]
+        #     if A_REG in jmp:
+        #         output[0] = "1"
+        #     if D_REG in jmp:
+        #         output[1] = "1"
+        #     if M_REG in jmp:
+        #         output[2] = "1"
+        #     return "".join(output)
