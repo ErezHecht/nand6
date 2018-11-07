@@ -13,8 +13,8 @@ NULL = "null"
 EQUALS = '='
 JMP = ';'
 BITS = 15
-
-
+ASM_SUFFIX = ".asm"
+HACK_SUFFIX = ".hack"
 class SymbolTable:
     """
     A wrapper class for a dictionary of pre-defined variables.
@@ -78,8 +78,7 @@ def assemble_file(address):
         first_pass(lines, symbol_table)
         # Main Pass:
         output = main_pass(lines, symbol_table)
-        out_file = open(os.path.splitext(os.path.basename(address))[0] +
-                        ".hack", "w+")
+        out_file = open(address.replace(ASM_SUFFIX,HACK_SUFFIX), "w+")
         out_file.write(output)
         out_file.close()
 
