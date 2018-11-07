@@ -2,7 +2,7 @@
 import sys
 import os
 from translator import Translator
-
+from pathlib import Path
 TRANSLATOR = Translator()
 # PARSER = Parser()
 LABEL_START = "("
@@ -15,6 +15,7 @@ JMP = ';'
 BITS = 15
 ASM_SUFFIX = ".asm"
 HACK_SUFFIX = ".hack"
+
 class SymbolTable:
     """
     A wrapper class for a dictionary of pre-defined variables.
@@ -128,7 +129,7 @@ def validate_arg(arg):
     if not os.path.exists(arg):
         print("Error: Path " + arg + " doesn't exist.")
         exit(-1)
-    if os.path.isfile(arg) and not arg.endswith(".asm"):
+    if os.path.isfile(arg) and not arg.endswith(ASM_SUFFIX):
         print("Error: File " + arg + " is not an asm file.")
         exit(-1)
 
@@ -138,9 +139,12 @@ def main():
     for i in range(1, len(sys.argv)):
         arg = sys.argv[i]
         if os.path.isdir(arg):
-            for filename in os.listdir(arg):
-                if filename.endswith(".asm"):
-                    assemble_file(filename)
+            dir_path = Path(arg)
+            # files = [os.path.abspath(j) for j in os.listdir(arg)]
+            for file in os.listdir(arg):
+                if file.endswith(ASM_SUFFIX):
+                    file_path= dir_path/file
+                    assemble_file(str(file_path))
         else:
             validate_arg(arg)
             assemble_file(arg)
